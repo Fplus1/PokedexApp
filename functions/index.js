@@ -31,6 +31,7 @@ app.intent('open_pokedex', (conv, {pokemon}) => {
 exports.pokeDex = functions.https.onRequest(app);
 
 function PokeDex(pokemon) {
+
     function getDesc() {
         return new Promise((resolve, reject) => {
 
@@ -43,50 +44,83 @@ function PokeDex(pokemon) {
                 }
                 let pokeSpecies = JSON.parse(body);
 
-                //Get name
-                let name = pokeSpecies['name'];
+                let dexEntry = createPokedexEntry(pokeSpecies);
 
-                //Get pre-evolution
-                let preEvolution;
-                if (typeof pokeSpecies['evolves_from_species'] !== 'undefined' && pokeSpecies['evolves_from_species'] !== null) {
-                    preEvolution = pokeSpecies['evolves_from_species']['name'];
-                }
-
-                //Get flavor_text_entry in English
-                let enTextEntry = 0;
-                for (let i = pokeSpecies['flavor_text_entries'].length - 1; i > 0; i--) {
-                    if (pokeSpecies['flavor_text_entries'][i]['language']['name'] === 'en') {
-                        enTextEntry = i;
-                        break;
-                    }
-                }
-                let flavorText = pokeSpecies['flavor_text_entries'][enTextEntry]['flavor_text'];
-
-                //Get genera in English
-                let enGenera = 0;
-                for (let i = pokeSpecies['genera'].length - 1; i > 0; i--) {
-                    if (pokeSpecies['genera'][i]['language']['name'] === 'en') {
-                        enGenera = i;
-                        break;
-                    }
-                }
-                let genus = pokeSpecies['genera'][enGenera]['genus'];
-
-                //Return Pokedex entry
-                let dexEntry = 'null';
-                if (typeof preEvolution !== 'undefined' && preEvolution !== null) {
-                    dexEntry = name+'. '+'The '+genus+'. The evolved form of '+preEvolution+'. '+flavorText;
-                } else {
-                    dexEntry = name+'. '+'The '+genus+'. '+flavorText;
-                }
-
-                if (typeof dexEntry !== 'undefined' && dexEntry !== null) {
-                    resolve(dexEntry.replace(/\u000c/g, ' '));
-                } else {
+                if (isStringEmpty(dexEntry)) {
                     reject("PokeDex.getDesc(): No description for " + pokemon)
+                } else {
+                    // resolve(dexEntry.replace(/\u000c/g, ' '));
+                    resolve(formatText(dexEntry));
                 }
             });
         })
+    }
+
+    function createPokedexEntry(pokeSpecies){
+        let name = getName(pokeSpecies);
+        let preEvolution = getPreEvolution(pokeSpecies);
+        let flavorText = getTextEntry(pokeSpecies, 'en')
+        let genus = getGenera(pokeSpecies, 'en');
+
+        if (isStringEmpty(preEvolution)) {
+            return  name+'. '+'The '+genus+'. '+flavorText;
+        } else {
+            return  name+'. '+'The '+genus+'. The evolved form of '+preEvolution+'. '+flavorText;
+        }
+    }
+
+    function getName(pokeSpecies){
+        return pokeSpecies['name'];
+    }
+
+    function getPreEvolution(pokeSpecies){
+        if (!isStringEmpty(pokeSpecies['evolves_from_species'])) {
+            return pokeSpecies['evolves_from_species']['name'];
+        }
+    }
+
+    function getTextEntry(pokeSpecies, language){
+        let languageIndex = 0;
+        for (let i = pokeSpecies['flavor_text_entries'].length - 1; i > 0; i--) {
+            if (isLanguageMatch(pokeSpecies['flavor_text_entries'][i]['language']['name'], language)) {
+                languageIndex = i;
+                break;
+            }
+        }
+
+        return pokeSpecies['flavor_text_entries'][languageIndex]['flavor_text'];
+    }
+
+    function getGenera(pokeSpecies, language){
+        let languageIndex = 0;
+        for (let i = pokeSpecies['genera'].length - 1; i > 0; i--) {
+            if (isLanguageMatch(pokeSpecies['genera'][i]['language']['name'], language)) {
+                languageIndex = i;
+                break;
+            }
+        }
+
+        return pokeSpecies['genera'][languageIndex]['genus'];
+    }
+
+    function isStringEmpty(text){
+        if (typeof text === 'undefined' || text === null) {
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    function isLanguageMatch(text, language){
+        if(text === language){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    function formatText(text){
+        return text.replace(/\u000c/g, ' ');
     }
 
     return {
