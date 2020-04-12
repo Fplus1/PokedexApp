@@ -1,28 +1,37 @@
 const request = require('request');
 
+
+
 exports.PokeDex = function() {
 
     function getDesc(pokemon) {
         return new Promise((resolve, reject) => {
-
-            //Get pokemon-species json object
-            const url = 'https://pokeapi.co/api/v2/pokemon-species/' + pokemon + '/';
-            request.get(url, (error, response, body) => {
-                if (error) {
-                    reject("PokeDex.getDesc(): " + error +" "+url);
-                    return console.log(error);
-                }
-                let pokeSpecies = JSON.parse(body);
-
-                let dexEntry = createPokedexEntry(pokeSpecies);
-
-                if (isStringEmpty(dexEntry)) {
-                    reject("PokeDex.getDesc(): No description for " + pokemon)
-                } else {
-                    resolve(formatText(dexEntry));
-                }
-            });
+            getPokemon(pokemon, resolve, reject);
         })
+    }
+
+    function getPokemon(pokemon, resolve, reject){
+        //Get pokemon-species json object
+        const url = 'https://pokeapi.co/api/v2/pokemon-species/' + pokemon + '/';
+        request.get(url, (error, response, body) => {
+            if (error) {
+                reject("PokeDex.getDesc(): " + error +" "+url);
+                return console.log(error);
+            }
+            let pokeSpecies = JSON.parse(body);
+
+            let dexEntry = createPokedexEntry(pokeSpecies);
+
+
+            if (isStringEmpty(dexEntry)) {
+                reject("PokeDex.getDesc(): No description for " + pokemon)
+            } else {
+                resolve(formatText(dexEntry));
+                // console.log('helo there');
+                // resolve('hello there');
+
+            }
+        });
     }
 
     function createPokedexEntry(pokeSpecies){
@@ -94,6 +103,7 @@ exports.PokeDex = function() {
 
     return {
         getDesc: getDesc,
+        getPokemon: getPokemon,
     };
 };
 
