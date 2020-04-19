@@ -1,29 +1,83 @@
 const request = require('request');
 
+
+
 exports.PokeDex = function() {
 
     function getDesc(pokemon) {
         return new Promise((resolve, reject) => {
-
-            //Get pokemon-species json object
-            const url = 'https://pokeapi.co/api/v2/pokemon-species/' + pokemon + '/';
-            request.get(url, (error, response, body) => {
-                if (error) {
-                    reject("PokeDex.getDesc(): " + error +" "+url);
-                    return console.log(error);
-                }
-                let pokeSpecies = JSON.parse(body);
-
-                let dexEntry = createPokedexEntry(pokeSpecies);
-
-                if (isStringEmpty(dexEntry)) {
-                    reject("PokeDex.getDesc(): No description for " + pokemon)
-                } else {
-                    resolve(formatText(dexEntry));
-                }
-            });
+            getPokemon(pokemon, resolve, reject);
         })
     }
+
+    function getT(pokemon) {
+        return new Promise((resolve, reject) => {
+            getPokeType(pokemon, resolve, reject);
+        })
+    }
+
+
+    function getPokeType(pokemon, resolve, reject){
+        //Get pokemon-species json object
+        const url = 'https://pokeapi.co/api/v2/pokemon/' + pokemon + '/';
+        request.get(url, (error, response, body) => {
+            if (error) {
+                reject("PokeDex.getDesc(): " + error +" "+url);
+                return console.log(error);
+            }
+            let pokeSpecies = JSON.parse(body);
+
+            let types = getType(pokeSpecies);
+
+            if (isStringEmpty(types)) {
+                reject("PokeDex.getDesc(): No description for " + pokemon)
+            } else {
+                resolve(formatTypeText(types));
+            }
+        });
+    }
+
+
+    function getType(pokemon){
+        types = [];
+
+        for (let i=0; i < pokemon['types'].length; i++){
+            types[i] = pokemon['types'][i]['type']['name'];
+        }
+
+        return types;
+    }
+
+    function formatTypeText(types){
+        if(types.length > 1){
+            return types[0]+" and "+types[1];
+        }else{
+            return types[0];
+        }
+    }
+
+    function getPokemon(pokemon, resolve, reject){
+        //Get pokemon-species json object
+        const url = 'https://pokeapi.co/api/v2/pokemon-species/' + pokemon + '/';
+        request.get(url, (error, response, body) => {
+            if (error) {
+                reject("PokeDex.getDesc(): " + error +" "+url);
+                return console.log(error);
+            }
+            let pokeSpecies = JSON.parse(body);
+
+            let dexEntry = createPokedexEntry(pokeSpecies);
+
+            if (isStringEmpty(dexEntry)) {
+                reject("PokeDex.getDesc(): No description for " + pokemon)
+            } else {
+                resolve(formatText(dexEntry));
+            }
+        });
+    }
+
+
+
 
     function createPokedexEntry(pokeSpecies){
         let name = getName(pokeSpecies);
@@ -94,6 +148,9 @@ exports.PokeDex = function() {
 
     return {
         getDesc: getDesc,
+        getPokemon: getPokemon,
+        getPokeType: getPokeType,
+        getT: getT,
     };
 };
 
