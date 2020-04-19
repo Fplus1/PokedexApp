@@ -32,7 +32,7 @@ exports.PokeDex = function() {
             if (isStringEmpty(types)) {
                 reject("PokeDex.getDesc(): No description for " + pokemon)
             } else {
-                resolve(formatTypeText(types));
+                resolve(formatTypeText(types, pokemon));
             }
         });
     }
@@ -48,11 +48,11 @@ exports.PokeDex = function() {
         return types;
     }
 
-    function formatTypeText(types){
+    function formatTypeText(types, name){
         if(types.length > 1){
-            return types[0]+" and "+types[1];
+            return name+" is a "+types[0]+" and "+types[1]+" type Pokemon";
         }else{
-            return types[0];
+            return name+" is a "+types[0]+" type Pokemon";
         }
     }
 
