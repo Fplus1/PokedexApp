@@ -13,8 +13,16 @@ const dex = new pokeDex.PokeDex();
 
 /* eslint-disable */
 app.intent('open_pokedex', (conv, {pokemon}) => {
-    // const dexEntry = new PokeDex();
     return dex.getDesc(pokemon.toLowerCase())
+        .then((entry) => { (conv.close(entry)) })
+        .catch(error => {
+            (conv.close(error));
+            console.error(error);
+        });
+});
+
+app.intent('get_type', (conv, {pokemon}) => {
+    return dex.getT(pokemon.toLowerCase())
         .then((entry) => { (conv.close(entry)) })
         .catch(error => {
             (conv.close(error));
