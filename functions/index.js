@@ -12,9 +12,9 @@ const dex = new pokeDex.PokeDex();
 // console.log(dex.getPokemon('dratini', null, null));
 
 /* eslint-disable */
-app.intent('open_pokedex', (conv, {pokemon}) => {
+app.intent('get_desc', (conv, {pokemon}) => {
     return dex.getDesc(pokemon.toLowerCase())
-        .then((entry) => { (conv.close(entry)) })
+        .then((entry) => { (conv.ask(entry)) })
         .catch(error => {
             (conv.close(error));
             console.error(error);
@@ -23,7 +23,7 @@ app.intent('open_pokedex', (conv, {pokemon}) => {
 
 app.intent('get_type', (conv, {pokemon}) => {
     return dex.getT(pokemon.toLowerCase())
-        .then((entry) => { (conv.close(entry)) })
+        .then((entry) => { (conv.ask(entry)) })
         .catch(error => {
             (conv.close(error));
             console.error(error);
